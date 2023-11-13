@@ -26,11 +26,11 @@ class userAuthentication {
     try {
         const user = await collection.findOne({ "local.email": email });
         if (!user) {
-          return res.status(404).json({ error: "user does not exist" });
+          return res.status(404).json({ error: "User does not exist" });
         }
         const validPwd = await bcrypt.compareSync(password, user.local.password);
         if (!validPwd) {
-          return res.status(401).json({ error: "invalid password" });
+          return res.status(401).json({ error: "Invalid password" });
         }
         const accessToken = generateJWT({
           email: user.local.email, // Access the email using "user.local.email"
@@ -120,7 +120,7 @@ class userAuthentication {
       const dup_username = await collection.findOne({ "local.username": username });
 
       if (duplicate) {
-        return res.status(409).json({ error: "account already exist" });
+        return res.status(409).json({ error: "Account Already Exist" });
       }
       if(dup_username){
         return res.status(409).json({ error: "Username Already Exist" });
