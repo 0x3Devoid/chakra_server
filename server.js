@@ -7,7 +7,7 @@ const host = '0.0.0.0';
 const port = process.env.PORT || 5000;
 
 
-app.use('/', router)
+app.use('/app', router)
 
 
 app.listen(port, host, () => {

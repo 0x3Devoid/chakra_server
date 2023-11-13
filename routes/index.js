@@ -11,7 +11,7 @@ router.use(cors());
 router.use(express.json());
 router.use(cookie());
 
-router.get('/app', UserController.app);
+router.get('/v1', UserController.app);
 
 
 module.exports = router
