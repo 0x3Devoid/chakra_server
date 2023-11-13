@@ -1,19 +1,14 @@
 const User = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 const generateJWT = require('../utils/generateJWT');
-const argon2 = require('argon2');
+const bcryptjs = require('bcryptjs');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-const login = async (req, res) => {
-    // const errors = validationRequest(req);
-    // if (!errors.isEmpty()){
-    //     return res.status(400).json({ errors: errors.array() });
-    // }
-    console.log('body -- ', req.body);
-    console.log('query-- ', req.query);
-    const { email, password } = req.body;
+class userAuthentication{
+    static async login(req, res){
+        const { email, password } = req.body;
     if (!email || !password) {
         return res.status(400).json({ error: 'missing username/password' });
     }
@@ -25,12 +20,12 @@ const login = async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'user does not exist' });
         }
-        const validPwd = await argon2.verify(user.local.password, password);
+        const validPwd = await bcryptjs.compare(password, user.local.password);;
         if (!validPwd) {
             return res.status(401).json({ error: 'invalid password' });
         }
-        accessToken = generateJWT({ email: user.email, id: user._id, duration: "5m"});
-        refreshToken = generateJWT({ email: user.email, id: user._id, duration: "1d" });
+       const accessToken = generateJWT({ email: user.email, id: user._id, duration: "5m"});
+       const refreshToken = generateJWT({ email: user.email, id: user._id, duration: "1d" });
         user.lastLogin = new Date();
         user.refreshToken = refreshToken;
         await user.save();
@@ -40,62 +35,66 @@ const login = async (req, res) => {
         console.log(error);
         return res.status(500).json({ error });
     }
-}
+    }
 
-const logout = async (req, res) => {
-    const cookie = req.cookies;
-    if (!cookie?.jwt) return res.sendStatus(204);
-    const refreshToken = cookie.jwt;
-    try {
-        const user = await User.findOne({ 'commonFields.refreshToken': refreshToken });
-        if (!user) {
+    static async logout(req, res){
+        const cookie = req.cookies;
+        console.log(`COOKIE ${cookie.jwt}`)
+        if (!cookie?.jwt) return res.sendStatus(204);
+        const refreshToken = cookie.jwt;
+        try {
+            const user = await User.findOne({ 'commonFields.refreshToken': refreshToken });
+            if (!user) {
+                res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
+                res.sendStatus(204);
+                return
+            }
             res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
             res.sendStatus(204);
+        } catch (error) {
+            console.log(error);
+            return res.sendStatus(500);
         }
-        user.refreshToken = '';
-        await user.save();
-        res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
-        res.sendStatus(204);
-    } catch (error) {
-        console.log(error);
-        return res.sendStatus(500);
     }
-}
 
-const register = async (req, res) => {
-    // const errors = validationRequest(req);
-    // if (!errors.isEmpty()) {
-    //     return res.status(400).json({ errors: errors.array() });
-    // }
-    const { username, email, password } = req.body;
-    if (!email || !password || !username) {
-        return res.status(400).json({ error: 'missing username/password/email' });
-    }
-    if (typeof email !== "string" || typeof password !== "string" || typeof username !== "string") {
-        return res.status(400).json({ error: 'invalid username/password/email' });
-    }
-    try {
-        const duplicate = await User.findOne({ 'local.email': email });
-        if (duplicate) {
-            return res.status(409).json({ error: 'account already exist' });
+    static async register(req, res){
+
+        const { username, email, password } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'email cant be empty' });
         }
-        const password_hash = await argon2.hash(password);
-        const newUser = new User({
-            method: 'local',
-            local: {
-                username: username,
-                email: email,
-                password: password_hash,
-                lastLogin: new Date()
+        if (!password) {
+            return res.status(400).json({ error: 'missing password' });
+        }if (!username) {
+            return res.status(400).json({ error: 'missing username' });
+        }
+        if (typeof email !== "string" || typeof password !== "string" || typeof username !== "string") {
+            return res.status(400).json({ error: 'invalid username/password/email' });
+        }
+        try {
+            const duplicate = await User.findOne({ 'local.email': email });
+            if (duplicate) {
+                return res.status(409).json({ error: 'account already exist' });
             }
-        });
-        await newUser.save();
-        console.log(newUser);
-        return res.status(201).json({ message: 'User registered successfully' });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ error });
+            const password_hash = await bcryptjs.hash(password, 10);
+            const newUser = new User({
+                method: 'local',
+                local: {
+                    username: username,
+                    email: email,
+                    password: password_hash,
+                    lastLogin: new Date()
+                }
+            });
+            await newUser.save();
+            console.log(newUser);
+            return res.status(201).json({ message: 'User registered successfully' });
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ error });
+        }
+
     }
 }
 
-module.exports = { login, logout, register };
+module.exports = userAuthentication;

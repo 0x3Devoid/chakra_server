@@ -1,6 +1,7 @@
 const express = require('express');
+const cors = require('cors')
 const verifyJWT = require('../middlewares/verifyJWT');
-const { login, logout, register } = require('../controllers/emailAuthController');
+const userAuthentication = require('../controllers/emailAuthController');
 const refreshTokenController = require('../controllers/refreshTokenController');
 const passport = require('../config/googleAuthConfig');
 const leaderBoard = require('../controllers/leaderBoardController');
@@ -11,10 +12,12 @@ const increaseUserEarning = require('../controllers/increaseEarningController');
 const router = express.Router()
 
 //jwt manual routes
+router.use(cors())
+router.use(express.json());
 
-router.post('/auth/login', login);
-router.post('/auth/register', register);
-router.get('/auth/logout', logout);
+router.post('/auth/login', userAuthentication.login);
+router.post('/auth/register', userAuthentication.register);
+router.get('/auth/logout', userAuthentication.logout);
 router.get('/auth/refresh', refreshTokenController);
 
 //google auth routes
@@ -50,7 +53,7 @@ router.get('/auth/google/redirect/done', (req, res) => {
     }
 });
 
-//user routes
+//user routs
 router.get('/', verifyJWT, (req, res) => {
     // console.log(req.user);
     return res.json({ token: req.session.accessToken , email: req.user });
