@@ -2,7 +2,7 @@ const dbClient = require("../storage/db");
 const generateJWT = require("../utils/generateJWT");
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
-const { ObjectId } = require('mongodb');
+
 
 
 dotenv.config();
@@ -97,7 +97,7 @@ class userAuthentication {
 
   //DONE
   static async register(req, res) {
-    const { username, email, password } = req.body;
+    const { username, email, password, earning } = req.body;
     if (!email) {
       return res.status(400).json({ error: "email cant be empty" });
     }
@@ -117,8 +117,14 @@ class userAuthentication {
     const collection = await dbClient.db.collection("Users");
     try {
       const duplicate = await collection.findOne({ "local.email": email });
+      const dup_username = await collection.findOne({ "local.username": username });
+
       if (duplicate) {
         return res.status(409).json({ error: "account already exist" });
+      }
+      if(dup_username){
+        return res.status(409).json({ error: "Username Already Exist" });
+
       }
       const password_hash = await bcrypt.hashSync(password, salt);
       const newUser ={
@@ -128,6 +134,7 @@ class userAuthentication {
           email: email,
           password: password_hash,
           lastLogin: new Date(),
+          earning: earning || 0
         },
       };
       await collection.insertOne(newUser);
