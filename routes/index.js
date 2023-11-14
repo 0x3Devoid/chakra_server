@@ -10,13 +10,12 @@ const verifyJWT = require('../middlewares/verifyJWT.js')
 
 const router = express.Router();
 
-router.use(cors(
-    {
-        origin: ["http://localhost:3000", "https://chakra-livid.vercel.app/"],
-        methods: ["POST, GET"],
-        credentials: true,
-    }
-));
+router.use(cors({
+    origin: ["http://localhost:3000", "https://chakra-livid.vercel.app"],
+    methods: ["POST", "GET"],
+    credentials: true,
+}));
+
 router.use(express.json());
 router.use(cookie());
 
