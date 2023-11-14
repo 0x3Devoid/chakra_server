@@ -26,7 +26,7 @@ router.get('/logout', userAuthentication.logout);
 router.post('/user', verifyJWT, currentUserController.getUser);
 router.get('/leaderboard', verifyJWT, leaderBoard);
 
-
+// SOME ROUTES COMING SOON
 
 
 
