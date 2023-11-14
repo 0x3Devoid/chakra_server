@@ -45,7 +45,6 @@ class userAuthentication {
         user.lastLogin = new Date();
         user.refreshToken = refreshToken;
       
-        // Update the user document in the collection
         await collection.updateOne({ _id: user._id }, { $set: user });
       
         res.cookie("jwt", refreshToken, {

@@ -8,6 +8,7 @@ const port = process.env.PORT || 5000;
 
 
 app.use('/app', router)
+app.use(express.json());
 
 
 app.listen(port, host, () => {
