@@ -36,8 +36,8 @@ class Claiming {
   static async referalClaim(req, res) {
     const collection = await dbClient.db.collection("Users");
     try {
-      const { email, earning } = req.body;
-      if (!email || !earning) {
+      const { email, earning, username } = req.body;
+      if (!email || !earning || !username) {
         return res.status(400).json({ error: "missing email/claim" });
       }
       if (typeof email !== "string" || typeof parseFloat(earning) !== "number") {
@@ -45,18 +45,32 @@ class Claiming {
           .status(400)
           .json({ error: "email must be string and claim must be a number" });
       }
-      const filter = { "local.email": email };
-      const update = {
-        $inc: { "local.earning": parseFloat(earning) },
-      };
 
-      const result = await collection.updateOne(filter, update);
-
-      if (result.matchedCount === 0) {
-        return res.status(404).json({ error: "User not found" });
+      const user = await collection.findOne({ "local.username": username });
+      if (!user) {
+        return res.status(404).json({ error: "User does not exist" });
       }
-      const updatedUser = await collection.findOne(filter);
-      return res.status(200).json(updatedUser);
+      if(user.local.claimedRef === false){
+        const filter = { "local.email": email };
+        const update = {
+            $inc: { "local.earning": parseFloat(earning) },
+        };
+
+        const result = await collection.updateOne(filter, update);
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        const updatedUser = await collection.findOne(filter);
+        const userUpdate = {
+            $set: {"local.claimedRef" : true}
+        }
+        await collection.updateOne(user, userUpdate);
+        return res.status(200).json(updatedUser);
+      }else{
+        return res.status(400).json({error: "Reward already claimed"})
+      }
+      
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: "an error occured" });
