@@ -96,7 +96,7 @@ class userAuthentication {
 
   //DONE
   static async register(req, res) {
-    const { username, email, password, earning } = req.body;
+    const { username, email, password, earning, referal } = req.body;
     if (!email) {
       return res.status(400).json({ error: "email cant be empty" });
     }
@@ -117,7 +117,9 @@ class userAuthentication {
     try {
       const duplicate = await collection.findOne({ "local.email": email });
       const dup_username = await collection.findOne({ "local.username": username });
-
+      const validRef = await collection.findOne({"local.username": referal});
+      
+ 
       if (duplicate) {
         return res.status(409).json({ error: "Account Already Exist" });
       }
@@ -125,6 +127,8 @@ class userAuthentication {
         return res.status(409).json({ error: "Username Already Exist" });
 
       }
+     
+
       const password_hash = await bcrypt.hashSync(password, salt);
       const newUser ={
         method: "local",
@@ -133,7 +137,9 @@ class userAuthentication {
           email: email,
           password: password_hash,
           lastLogin: new Date(),
-          earning: earning || 0
+          earning: earning || 0,
+          referal: validRef ? referal : null,
+          claimedRef: false
         },
       };
       await collection.insertOne(newUser);
