@@ -20,7 +20,7 @@ router.use(cors({
 router.use(express.json());
 router.use(cookie());
 
-router.get('/v1', UserController.app);
+router.get('/v1', verifyJWT, UserController.app);
 router.post('/login', userAuthentication.login);
 router.post('/register', userAuthentication.register);
 router.get('/logout', userAuthentication.logout);
