@@ -14,10 +14,21 @@ class Claiming {
           .status(400)
           .json({ error: "email must be string and claim must be a number" });
       }
+
       const filter = { "local.email": email };
+      const user = await collection.findOne(filter);
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      const lastLogin = user.local.lastLogin;
+      const hoursSinceLastClaim = (new Date() - lastLogin) / (1000 * 60 * 60);
+      if (hoursSinceLastClaim < 24) {
+        return res.status(400).json({ error: "Cannot claim more than once every 24 hours" });
+      }
       const update = {
         $inc: { "local.earning": parseFloat(earning) },
-        $set: { "local.lastLogin": new Date() },
+        $set: { "local.lastLogin": new Date()},
       };
 
       const result = await collection.updateOne(filter, update);
