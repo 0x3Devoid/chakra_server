@@ -12,14 +12,10 @@ const Claiming = require('../controllers/increaseEarningController.js');
 const router = express.Router();
 
 router.use(cors({
-    origin: "*",
+    origin: ["https://chakra-livid.vercel.app"],
     methods: ["POST", "GET"],
     credentials: true,
 }));
-
-router.options("*", cors());
-
-
 
 router.use(express.json());
 router.use(cookie());
