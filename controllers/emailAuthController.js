@@ -34,11 +34,13 @@ class userAuthentication {
         }
         const accessToken = generateJWT({
           email: user.local.email, // Access the email using "user.local.email"
+          username: user.local.username,
           id: user._id.toString(), // Convert ObjectId to string
           duration: "5m",
         });
         const refreshToken = generateJWT({
           email: user.local.email,
+          username: user.local.username,
           id: user._id.toString(),
           duration: "1d",
         });

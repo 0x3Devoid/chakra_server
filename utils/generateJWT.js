@@ -7,7 +7,8 @@ dotenv.config();
 const generateJWT = (user) => {
     const payload = {
         sub: user._id,
-        email: user.email
+        email: user.email,
+        username: user.username
     }
     return jwt.sign(
         payload,

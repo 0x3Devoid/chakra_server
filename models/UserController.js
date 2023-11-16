@@ -1,6 +1,6 @@
 class UserController{
     static async app(req, res){
-        return res.send('<h1>Welcome to Chakra mining app server</h1>')
+        return res.status(200).json({user: req.user});
     }
 }
 

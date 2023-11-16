@@ -16,7 +16,7 @@ const verifyJWT = (req, res, next) => {
             .status(403)
             .json({ error: "Failed to authenticate token" });
         }
-        req.user = { email: decoded.email, id: decoded._id };
+        req.user = { email: decoded.email, id: decoded._id, username: decoded.username };
         next();
       });
     } catch (err) {
